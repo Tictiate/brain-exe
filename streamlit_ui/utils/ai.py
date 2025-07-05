@@ -1,6 +1,11 @@
 import openai
+import json
 
-client = openai.OpenAI(api_key="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")  # use your actual key
+# Load secrets from openAIKey.json
+with open("openAIKey.json") as f:
+    secrets = json.load(f)
+
+client = openai.OpenAI(api_key=secrets["openAIKey"])
 
 def get_insurance_summary(prompt: str):
     response = client.chat.completions.create(
