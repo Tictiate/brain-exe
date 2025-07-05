@@ -2,6 +2,6 @@ venv/
 pycache/
 uploads/
 .env
-serviceAccountKey.json
-secrets.json
-openAIKey.json
+backend/serviceAccountKey.json
+streamlit_ui/utils/openAIKey.json
+backend/razorpayKey.json
