@@ -1,8 +1,8 @@
 import razorpay
 import json
 
-# Load secrets from secrets.json
-with open("secrets.json") as f:
+# Load secrets from razorpayKey.json
+with open("razorpayKey.json") as f:
     secrets = json.load(f)
 
 RAZORPAY_KEY = secrets["RAZORPAY_KEY"]
