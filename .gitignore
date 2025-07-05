@@ -3,3 +3,4 @@ pycache/
 uploads/
 .env
 serviceAccountKey.json
+secrets.json
