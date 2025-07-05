@@ -23,9 +23,7 @@ with st.form("claim_form", clear_on_submit=True):
                 result = response.json()
 
                 if result["status"] == "success":
-                    st.success(result["message"])
-                    st.markdown("### 🔍 Extracted EXIF Metadata:")
-                    st.json(result["exif"])
+                    st.success(result["message"])                    
                 else:
                     st.error(result["message"])
             except Exception as e:

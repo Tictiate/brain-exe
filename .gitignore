@@ -5,3 +5,4 @@ uploads/
 backend/serviceAccountKey.json
 streamlit_ui/utils/openAIKey.json
 backend/razorpayKey.json
+*.mp3
