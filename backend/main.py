@@ -50,7 +50,6 @@ def kyc():
     })
 
 from PIL import Image
-import piexif
 import os
 
 UPLOAD_FOLDER = "uploads"
