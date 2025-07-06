@@ -31,3 +31,7 @@ pytz==2025.2
 
 # Streamlit extras (optional)
 watchdog==6.0.0
+
+#AI Integration
+openai>=1.0.0
+python-dotenv
