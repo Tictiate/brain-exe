@@ -25,20 +25,22 @@ Brain-Exe is a multilingual, voice-enabled insurance assistant designed to help 
 |--------------------|-----------------------|------------------------|----------------------------|
 | Streamlit (Python) | Firebase Firestore    | OpenRouter (LLM API)   | Whisper (voice input)      |
 | Streamlit UI Pages | Firebase Auth         | Prompt Engineering     | Aadhaar KYC (simulated)    |
-|                    | Python utils modules  |                        | Google Translate (optional)|
+|                    | Python utils modules  |                        | Google TTS engine          |
+|                    |                       |                        | Razorpay payments          |
 
 ---
 
 ## 🔄 Flow
-
-1. **Landing Page** → Choose language
-2. **Option A: Explore Plans** → Browse schemes in your language
-3. **Option B: Take Survey** → Fill a form with personal info
-4. **Backend saves response to Firebase**
-5. Redirect to **Chatbot Assistant Page**
-6. Ask questions via **Text or Voice**
-7. LLM generates answers, recommends plans
-8. Option to **File a Claim** or **Learn More**
+1. **Aadhar KYC**
+2. **Landing Page** → Choose language
+3. **Option A: Explore Plans** → Browse schemes in your language
+4. **Option B: Take Survey** → Fill a form with personal info
+5. **Backend saves response to Firebase**
+6. Redirect to **Chatbot Assistant Page**
+7. Ask questions via **Text or Voice**
+8. LLM generates answers, recommends plans
+9. Option to pay premiums via RazorPay
+10. Option to **File a Claim** or **Learn More** 
 
 ---
 
