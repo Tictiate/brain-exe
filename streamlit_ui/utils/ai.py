@@ -1,18 +1,42 @@
-import openai
-import json
+import os
+import requests
 
-# Load secrets from openAIKey.json
-with open("openAIKey.json") as f:
-    secrets = json.load(f)
 
-client = openai.OpenAI(api_key=secrets["openAIKey"])
+
+api_key="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"
 
 def get_insurance_summary(prompt: str):
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You're a helpful insurance assistant. Respond in simple Hindi and English."},
-            {"role": "user", "content": prompt}
+    if not api_key:
+        raise Exception("❌ API key not found in environment variables.")
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:8501",  # optional but recommended
+        "X-Title": "Brain-Exe-Assistant"
+}
+
+
+    data = {
+        "model": "mistralai/mistral-7b-instruct",  # Use an available free model
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
         ]
-    )
-    return response.choices[0].message.content
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code != 200:
+            print("⚠️ AI Error:", response.status_code, "-", response.text)
+            return None
+
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print("❌ Exception while calling OpenRouter:", str(e))
+        return None

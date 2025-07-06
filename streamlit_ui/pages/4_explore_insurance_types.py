@@ -7,26 +7,44 @@ from utils.sidebar import render_sidebar
 
 render_sidebar()
 
-# Detect manual navigation (user did NOT come here by pressing an insurance button)
-manual_nav = (
-    st.session_state.get("play_and_redirect", False)
-    and "last_clicked_page" in st.session_state
-    and st.session_state["last_clicked_page"] != "explore_insurance"
-)
+# 🔁 Reset state if user navigated manually
+if st.session_state.get("last_clicked_page") != "explore_insurance":
+    for key in ["play_and_redirect", "start_time", "speech_text", 
+                "selected_insurance_type", "selected_scheme_name", 
+                "last_clicked_label", "button_click_count"]:
+        if key in st.session_state:
+            del st.session_state[key]
 
-# Reset redirect flags if navigated manually
-if manual_nav:
-    st.session_state.play_and_redirect = False
-    st.session_state.start_time = None
-    st.session_state.speech_text = None
-    st.session_state.selected_insurance_type = None
-    st.session_state.selected_scheme_name = None
-
-# Mark that we're now on this page
 st.session_state["last_clicked_page"] = "explore_insurance"
+lang_code = st.session_state.get("language", "en")
 
-# Get selected language
-lang = st.session_state.get("language", "en")
+# 🌍 Headings in local language
+heading_texts = {
+    "en": "Select Type of Insurance",
+    "hi": "बीमा का प्रकार चुनें",
+    "mr": "विमा प्रकार निवडा",
+    "ta": "காப்பீட்டு வகையைத் தேர்ந்தெடுக்கவும்",
+    "te": "బీమా రకాన్ని ఎంచుకోండి",
+    "gu": "વીમા પ્રકાર પસંદ કરો",
+    "bn": "বীমার ধরন নির্বাচন করুন"
+}
+heading = heading_texts.get(lang_code, heading_texts["en"])
+st.title(f"🛡️ {heading}")
+
+# 🔊 Speak heading once
+if not st.session_state.get("heading_spoken", False):
+    audio_file = speak(heading, lang_code, filename="heading.mp3")
+    if audio_file and os.path.exists(audio_file):
+        with open(audio_file, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode()
+        st.markdown(f"""
+            <audio autoplay>
+                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+        """, unsafe_allow_html=True)
+    st.session_state.heading_spoken = True
+
+# 🔠 Insurance translations
 INSURANCE_TRANSLATIONS = {
     "en": {
         "Health Insurance": "Health Insurance",
@@ -100,7 +118,6 @@ INSURANCE_TRANSLATIONS = {
     }
 }
 
-
 insurance_options = {
     "Health Insurance": "Ayushman Bharat - PMJAY",
     "Life Insurance": "Pradhan Mantri Jeevan Jyoti Bima Yojana",
@@ -112,52 +129,38 @@ insurance_options = {
     "Home Insurance": "Griha Aadhar Yojana"
 }
 
-lang_code = st.session_state.get("language", "en")
+# 🧠 Init click tracking
+st.session_state.setdefault("last_clicked_label", None)
+st.session_state.setdefault("button_click_count", 0)
 
-# Title
-st.title("🛡️ Select Type of Insurance")
-
-if "language" not in st.session_state:
-    st.warning("Language not selected. Returning to language selection page...")
-    st.switch_page("language_select")
-
-lang = st.session_state.language
-translations = INSURANCE_TRANSLATIONS.get(lang, INSURANCE_TRANSLATIONS["en"])
-
-
-# Step 1: Check and setup state
-if "play_and_redirect" not in st.session_state:
-    st.session_state.play_and_redirect = False
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-
-# Step 2: Display all insurance buttons
+# 🟢 Render insurance options
+translations = INSURANCE_TRANSLATIONS.get(lang_code, INSURANCE_TRANSLATIONS["en"])
 for ins_type, scheme in insurance_options.items():
     label = translations.get(ins_type, ins_type)
-    if st.button(label) and not st.session_state.play_and_redirect:
-        st.session_state.selected_insurance_type = ins_type
-        st.session_state.selected_scheme_name = scheme
-        st.session_state.speech_text = label
-        st.session_state.play_and_redirect = True
-        st.session_state.start_time = time.time()
-        st.rerun()
+    if st.button(label):
+        if st.session_state.last_clicked_label == label:
+            st.session_state.button_click_count += 1
+        else:
+            st.session_state.last_clicked_label = label
+            st.session_state.button_click_count = 1
+            st.session_state.speech_text = label
+            st.session_state.start_time = time.time()
 
-# Step 3: If button clicked previously, play and redirect
-if st.session_state.play_and_redirect:
-    # Generate and play audio
-    audio_file = speak(st.session_state.speech_text, lang_code, filename="ins_choice.mp3")
-    if audio_file and os.path.exists(audio_file):
-        with open(audio_file, "rb") as f:
-            audio_bytes = f.read()
-        b64 = base64.b64encode(audio_bytes).decode()
-        st.markdown(f"""
-            <audio autoplay>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-        """, unsafe_allow_html=True)
+        # 1st click: Speak only
+        if st.session_state.button_click_count == 1:
+            audio_file = speak(label, lang_code, filename="ins_choice.mp3")
+            if audio_file and os.path.exists(audio_file):
+                with open(audio_file, "rb") as f:
+                    b64 = base64.b64encode(f.read()).decode()
+                st.markdown(f"""
+                    <audio autoplay>
+                        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                    </audio>
+                """, unsafe_allow_html=True)
 
-    # Check timer
-    if time.time() - st.session_state.start_time > 2.5:
-        st.session_state.play_and_redirect = False
-        st.switch_page("pages/4b_insurance_summary.py")
-
+        # 2nd click: Redirect
+        elif st.session_state.button_click_count == 2:
+            st.session_state.selected_insurance_type = ins_type
+            st.session_state.selected_scheme_name = scheme
+            st.session_state.button_click_count = 0
+            st.switch_page("pages/4b_insurance_summary.py")

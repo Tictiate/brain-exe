@@ -1,6 +1,8 @@
 import streamlit as st
 import os
 import sys
+from utils.sidebar import render_sidebar
+render_sidebar()
 
 # Enable import from the backend folder
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
