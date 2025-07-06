@@ -58,18 +58,31 @@ if st.button("Proceed") and not st.session_state.played:
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
         """, unsafe_allow_html=True)
+    st.success("✅ Language set!")
+
+    # Show navigation options
+    st.markdown("### Where would you like to go?")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔍 Explore Insurance Plans"):
+            st.switch_page("4_explore_insurance_types")
+    with col2:
+        if st.button("🧠 Take Survey for Recommendations"):
+            st.switch_page("8_survey_form")
 
     st.session_state.played = True
     st.session_state.start_time = time.time()
 
-# ⏱️ Redirect after audio
-if st.session_state.came_from_proceed and st.session_state.played and not st.session_state.redirect_ready:
-    if time.time() - st.session_state.start_time > 3.5:
-        st.session_state.redirect_ready = True
-        st.rerun()
 
-if st.session_state.came_from_proceed and st.session_state.redirect_ready:
-    st.session_state.came_from_proceed = False
-    st.switch_page("pages/4_explore_insurance_types.py")
 
-st.session_state["last_clicked_page"] = "language_select"
+# # ⏱️ Redirect after audio
+# if st.session_state.came_from_proceed and st.session_state.played and not st.session_state.redirect_ready:
+#     if time.time() - st.session_state.start_time > 3.5:
+#         st.session_state.redirect_ready = True
+#         st.rerun()
+
+# if st.session_state.came_from_proceed and st.session_state.redirect_ready:
+#     st.session_state.came_from_proceed = False
+#     st.switch_page("pages/4_explore_insurance_types.py")
+
+# st.session_state["last_clicked_page"] = "language_select"
