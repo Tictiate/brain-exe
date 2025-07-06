@@ -38,7 +38,7 @@ WELCOME_MESSAGES = {
 st.title("🌐 भाषा चुनें / Select Language")
 st.write("कृपया अपनी पसंदीदा भाषा चुनें। / Please choose your preferred language.")
 
-selected_lang_name = st.selectbox("Choose a language", list(LANGUAGES.keys()))
+selected_lang_name = st.selectbox("", list(LANGUAGES.keys()))
 selected_lang_code = LANGUAGES[selected_lang_name]
 st.session_state.language = selected_lang_code
 
