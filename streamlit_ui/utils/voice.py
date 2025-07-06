@@ -1,9 +1,10 @@
 from gtts import gTTS
 
-def speak(text, lang_code='en', filename='speech.mp3'):
+def speak(text):
     try:
-        tts = gTTS(text=text, lang=lang_code)
-        tts.save(filename)
-        return filename
+        tts = gTTS(text=text, lang='en')
+        tts.save("speech.mp3")
+        return "speech.mp3"
     except Exception as e:
+        print(f"[gTTS ERROR] {e}")
         return None
