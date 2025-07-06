@@ -3,21 +3,23 @@ from utils.sidebar import render_sidebar
 from utils.static_data import insurance_descriptions
 from utils.ai import get_insurance_summary
 
-
 render_sidebar()
+st.set_page_config(page_title="Insurance Summary", page_icon="📘")
 
-# Language + selected insurance type
+# Language + Insurance Selection
 lang = st.session_state.get("language", "en")
-ins_type = st.session_state.get("selected_insurance_type", "Health Insurance")
-selected_type = st.session_state.get("selected_insurance_type", None)
-scheme = st.session_state.get("selected_scheme_name", None)
+ins_type = st.session_state.get("selected_insurance_type")
+scheme = st.session_state.get("selected_scheme_name")
 
-if not selected_type or not scheme:
+# Validation
+if not ins_type or not scheme:
     st.warning("Please select an insurance type from the previous page first.")
     st.stop()
 
-# Get static data for selected type in current language
-info = insurance_descriptions.get(lang, insurance_descriptions["en"]).get(selected_type)
+# Get Static Info
+info = insurance_descriptions.get(lang, insurance_descriptions["en"]).get(ins_type)
+
+st.title("📘 Insurance Scheme Details")
 
 if info:
     st.subheader(f"🛡️ {info['scheme']}")
@@ -27,13 +29,10 @@ if info:
 else:
     st.error("No scheme data available for this insurance type.")
 
-# Static summary
-st.title("📘 Insurance Scheme Details")
-
-prompt = f"Explain the '{scheme}' insurance scheme in simple {lang}. Highlight eligibility, benefits, and how to claim. Give it in a friendly, easy-to-understand manner and keep it concise."
+# Generate AI Summary
+prompt = f"Explain the '{scheme}' insurance scheme in simple {lang}. Highlight eligibility, benefits, and how to claim. Keep it friendly and easy to understand."
 
 summary_key = f"summary_{ins_type}_{lang}"
-
 if summary_key not in st.session_state:
     with st.spinner("🧠 Generating summary..."):
         ai_summary = get_insurance_summary(prompt)
@@ -42,40 +41,22 @@ if summary_key not in st.session_state:
 st.markdown("### 💬 Summary (AI):")
 st.info(st.session_state[summary_key])
 
-
-# Static summary placeholder
-static_summaries = {
-    "Health Insurance": "PM-JAY (Ayushman Bharat) provides ₹5 lakh cover to poor families. Available at empanelled hospitals across India.",
-    "Life Insurance": "PMJJBY provides ₹2 lakh cover for ₹330/year. For citizens aged 18–50 with a bank account.",
-    "Crop Insurance": "PMFBY helps farmers get insurance for crops affected by floods, droughts, etc.",
-    "Disability Insurance": "Disability insurance provides financial support to individuals with long-term physical disabilities.",
-    "Vehicle Insurance": "Covers accident damage and third-party liabilities. Often bundled with motor vehicle purchases.",
-    "Travel Insurance": "Covers death/injury during travel. Some IRCTC tickets include free insurance.",
-    "Home Insurance": "Provides compensation for flood/fire damage in homes. Targeted at low-income housing.",
-    "Livestock Insurance": "Covers loss of insured animals due to accident, illness, or natural causes."
-}
-
+# AI Q&A
 st.markdown("### ❓ Ask a Question About This Scheme")
-
 user_question = st.text_input("Type your question here...", placeholder="e.g. Who is eligible for this scheme?")
 
 if user_question and st.button("Ask AI"):
     with st.spinner("🤖 Thinking..."):
         try:
-            full_prompt = f"You're an insurance assistant. The user has selected the scheme: '{scheme}'. Respond in simple {lang}. Question: {user_question}"
-            response = get_insurance_summary(full_prompt)
+            followup_prompt = (
+                f"You're an insurance assistant. The user selected the scheme: '{scheme}'. "
+                f"Respond in simple {lang}. Question: {user_question}"
+            )
+            response = get_insurance_summary(followup_prompt)
             st.success(f"🧠 AI: {response}")
         except Exception as e:
             st.error("⚠️ AI failed to respond.")
             st.code(str(e))
-
-# summary = static_summaries.get(selected_type, "No summary available yet.")
-# st.info(summary)
-
-# summary = get_insurance_summary(f"Summarize the {info} insurance scheme in simple terms.")
-
-
-
 
 
 

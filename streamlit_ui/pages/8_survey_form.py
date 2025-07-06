@@ -85,4 +85,20 @@ if submitted:
         "income": 10000
     }
     store_survey_response(survey_data)
-    st.success("✅ Survey submitted successfully! (values are placeholder)")
+    st.success("✅ Survey submitted successfully!")
+
+# Store ID for session linking
+st.session_state["user_id"] = survey_data["id"]
+
+st.markdown("### 🔀 What would you like to do next?")
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("📘 View Scheme Summary"):
+        st.switch_page("pages/4b_insurance_summary.py")
+
+with col2:
+    if st.button("🤖 Talk to AI Assistant"):
+        st.switch_page("pages/6_chatbot_assistant.py")
+
+   
