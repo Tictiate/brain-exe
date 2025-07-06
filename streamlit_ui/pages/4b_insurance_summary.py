@@ -55,10 +55,19 @@ static_summaries = {
     "Livestock Insurance": "Covers loss of insured animals due to accident, illness, or natural causes."
 }
 
+from utils.voice_input import record_audio, transcribe_audio
+
 st.markdown("### ❓ Ask a Question About This Scheme")
 
+st.markdown("### ❓ Ask a Question About This Scheme")
+
+from utils.voice_input import record_audio, transcribe_audio
+from utils.ai import get_insurance_summary  # already imported above in your file
+
+# --- Text-based input
 user_question = st.text_input("Type your question here...", placeholder="e.g. Who is eligible for this scheme?")
 
+# Handle text input
 if user_question and st.button("Ask AI"):
     with st.spinner("🤖 Thinking..."):
         try:
@@ -68,6 +77,36 @@ if user_question and st.button("Ask AI"):
         except Exception as e:
             st.error("⚠️ AI failed to respond.")
             st.code(str(e))
+
+# --- Voice-based input
+if st.button("🎙️ Speak your question"):
+    with st.spinner("🎤 Recording..."):
+        file_path = record_audio(duration=5)
+    
+    query = transcribe_audio(file_path)
+    if query:
+        st.success(f"🗣️ You said: {query}")
+        with st.spinner("🤖 Thinking..."):
+            try:
+                full_prompt = f"You're an insurance assistant. The user has selected the scheme: '{scheme}'. Respond in simple {lang}. Question: {query}"
+                ai_response = get_insurance_summary(full_prompt)
+                st.success(f"🧠 AI: {ai_response}")
+            except Exception as e:
+                st.error("⚠️ AI failed to respond.")
+                st.code(str(e))
+
+
+# # --- AI Response if there's a valid question
+# if user_question and st.button("Ask AI"):
+#     with st.spinner("🤖 Thinking..."):
+#         try:
+#             full_prompt = f"You're an insurance assistant. The user has selected the scheme: '{scheme}'. Respond in simple {lang}. Question: {user_question}"
+#             response = get_insurance_summary(full_prompt)
+#             st.success(f"🧠 AI: {response}")
+#         except Exception as e:
+#             st.error("⚠️ AI failed to respond.")
+#             st.code(str(e))
+
 
 # summary = static_summaries.get(selected_type, "No summary available yet.")
 # st.info(summary)
