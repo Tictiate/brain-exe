@@ -21,6 +21,6 @@ def render_sidebar():
     st.sidebar.page_link("pages/6_submit_claim.py", label="📤 Submit Claim")
     st.sidebar.page_link("pages/7_payment_gateway.py", label="💳 UPI Payment")
     st.sidebar.page_link("pages/8_survey_form.py", label="📝 Take Survey")
-
+    st.sidebar.page_link("pages/9_chatbot_assistant.py", label="🤖 Chat with AI")
     st.sidebar.markdown("---")
     st.sidebar.caption("🎓 Built by team Brain.exe for Inceptia 2025") 
