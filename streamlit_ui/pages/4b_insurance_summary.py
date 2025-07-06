@@ -3,21 +3,23 @@ from utils.sidebar import render_sidebar
 from utils.static_data import insurance_descriptions
 from utils.ai import get_insurance_summary
 
-
 render_sidebar()
+st.set_page_config(page_title="Insurance Summary", page_icon="📘")
 
-# Language + selected insurance type
+# Language + Insurance Selection
 lang = st.session_state.get("language", "en")
-ins_type = st.session_state.get("selected_insurance_type", "Health Insurance")
-selected_type = st.session_state.get("selected_insurance_type", None)
-scheme = st.session_state.get("selected_scheme_name", None)
+ins_type = st.session_state.get("selected_insurance_type")
+scheme = st.session_state.get("selected_scheme_name")
 
-if not selected_type or not scheme:
+# Validation
+if not ins_type or not scheme:
     st.warning("Please select an insurance type from the previous page first.")
     st.stop()
 
-# Get static data for selected type in current language
-info = insurance_descriptions.get(lang, insurance_descriptions["en"]).get(selected_type)
+# Get Static Info
+info = insurance_descriptions.get(lang, insurance_descriptions["en"]).get(ins_type)
+
+st.title("📘 Insurance Scheme Details")
 
 if info:
     st.subheader(f"🛡️ {info['scheme']}")
@@ -27,13 +29,10 @@ if info:
 else:
     st.error("No scheme data available for this insurance type.")
 
-# Static summary
-st.title("📘 Insurance Scheme Details")
-
-prompt = f"Explain the '{scheme}' insurance scheme in simple {lang}. Highlight eligibility, benefits, and how to claim. Give it in a friendly, easy-to-understand manner and keep it concise."
+# Generate AI Summary
+prompt = f"Explain the '{scheme}' insurance scheme in simple {lang}. Highlight eligibility, benefits, and how to claim. Keep it friendly and easy to understand."
 
 summary_key = f"summary_{ins_type}_{lang}"
-
 if summary_key not in st.session_state:
     with st.spinner("🧠 Generating summary..."):
         ai_summary = get_insurance_summary(prompt)
@@ -71,8 +70,11 @@ user_question = st.text_input("Type your question here...", placeholder="e.g. Wh
 if user_question and st.button("Ask AI"):
     with st.spinner("🤖 Thinking..."):
         try:
-            full_prompt = f"You're an insurance assistant. The user has selected the scheme: '{scheme}'. Respond in simple {lang}. Question: {user_question}"
-            response = get_insurance_summary(full_prompt)
+            followup_prompt = (
+                f"You're an insurance assistant. The user selected the scheme: '{scheme}'. "
+                f"Respond in simple {lang}. Question: {user_question}"
+            )
+            response = get_insurance_summary(followup_prompt)
             st.success(f"🧠 AI: {response}")
         except Exception as e:
             st.error("⚠️ AI failed to respond.")
