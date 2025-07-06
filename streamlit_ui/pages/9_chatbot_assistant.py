@@ -2,100 +2,80 @@ import streamlit as st
 from utils.sidebar import render_sidebar
 from utils.ai import get_insurance_summary
 from utils.tts_stt import speak, listen
+from utils.firebase import store_survey_response, get_latest_survey_by_user
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 
-st.set_page_config(page_title="Chat with AI", page_icon="🤖")
 render_sidebar()
 st.title("🤖 Insurance Chatbot Advisor")
 
-# --- Get user profile from Firebase ---
-if "user_id" not in st.session_state:
-    st.warning("User not found. Please fill the survey first.")
-    st.stop()
-
+# ✅ Firebase init
 if not firebase_admin._apps:
     cred = credentials.Certificate("firebaseKey.json")
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-user_id = st.session_state["user_id"]
-# 🔄 Get the most recent survey filled by this user
-docs = db.collection("user_survey_responses").where("user_id", "==", user_id).order_by("timestamp", direction=firestore.Query.DESCENDING).limit(1).stream()
+# ✅ Get user data
+user_id = st.session_state.get("user_id")
+if not user_id:
+    st.warning("User not found. Please fill the survey first.")
+    st.stop()
 
-user_data = None
-for doc in docs:
-    user_data = doc.to_dict()
-    break
-
+user_data = get_latest_survey_by_user(user_id)
 if not user_data:
-    st.error("Survey data not found. Please fill out the survey first.")
+    st.error("Survey data not found.")
     st.stop()
 
 
-# --- Get selected insurance type ---
-selected_type = st.session_state.get("selected_insurance_type", None)
-if not selected_type:
-    st.warning("Please select an insurance type from the Explore page.")
+docs = db.collection("user_survey_responses")\
+    .where("user_id", "==", user_id)\
+    .order_by("timestamp", direction=firestore.Query.DESCENDING)\
+    .limit(1).stream()
+
+user_data = next(docs, None)
+if not user_data or not user_data.exists:
+    st.error("Survey data not found.")
     st.stop()
 
-st.markdown(f"### 💼 You are exploring: {selected_type} insurance")
+user_data = user_data.to_dict()
 
-# --- Build system prompt ---
-def build_prompt(user_data, ins_type, user_query=None):
-    base = f"""
-You are an expert insurance advisor helping Indian citizens select the best government insurance schemes.
+# ✅ Recommendation Prompt
+prompt = f"""You are an expert insurance advisor.
+Suggest the best insurance schemes for the following profile:
 
-Here is the user's profile:
-👤 Name: {user_data.get('name')}
-🎂 Age: {user_data.get('age')}
-🚻 Gender: {user_data.get('gender')}
-💍 Marital Status: {user_data.get('marital_status')}
-👔 Occupation: {user_data.get('occupation')}
-🏭 Work Sector: {user_data.get('sector')}
-💵 Income: ₹{user_data.get('income')}
-🧾 Income Proof: {user_data.get('income_proof')}
-🩺 Health Issues: {user_data.get('health_issues')}
-💼 Existing Insurance: {user_data.get('has_existing_insurance')}
-📄 Existing Insurance Type: {user_data.get('existing_insurance_type')}
-🎯 Preferred Premium: ₹{user_data.get('preferred_premium')}
-🎯 Preferred Coverage: ₹{user_data.get('preferred_coverage')}
-💰 Payout Expectation: {user_data.get('payout_expectations')}
+👤 {user_data['name']}, {user_data['age']} y/o, {user_data['gender']}, {user_data['marital_status']}
+👪 Dependents: {user_data['dependents']}
+💼 Occupation: {user_data['occupation']} ({user_data['sector']})
+💵 Income: ₹{user_data['income']} (Proof: {user_data['has_income_proof']})
+🩺 Health: {user_data['health_issues'] or 'None'}
+✅ Existing: {user_data['has_existing_insurance']} - {', '.join(user_data['insurance_type']) if user_data['insurance_type'] else 'None'}
+🎯 Preferences: Coverage = {', '.join(user_data['preferred_coverage'])}, Premium ≤ ₹{user_data['preferred_premium']}
+🏁 Payout: {user_data['payout_expectation']}, Priority: {user_data['priority']}
 
-The user is interested in {ins_type} Insurance.
-Explain government schemes in simple Hindi and English. Mention:
-- Eligibility
-- Premium
-- Coverage
-- Claim process
+List relevant **government schemes**, with eligibility, premium, coverage, and claim process in simple Hindi and English.
 """
 
-    if user_query:
-        base += f"\nUser also asked: \"{user_query}\". Answer that as well."
+with st.spinner("Generating recommendations..."):
+    initial_reply = get_insurance_summary(prompt)
+    st.success(initial_reply)
+    # speak(initial_reply)
 
-    return base.strip()
+# ✅ Chat mode
+st.markdown("### 🗣️ Ask follow-up questions")
+mode = st.radio("Choose input mode:", ["💬 Text", "🎙️ Voice"])
 
-# --- Chat Interface ---
-st.markdown("### 🗣️ Ask your question")
-mode = st.radio("Select input mode:", ["🧠 Type", "🎙️ Voice"])
-
-if mode == "🧠 Type":
-    question = st.text_input("Ask a question about this scheme:")
+if mode == "💬 Text":
+    q = st.text_input("Your question")
     if st.button("Ask AI"):
-        prompt = build_prompt(user_data, selected_type, question)
-        with st.spinner("Thinking..."):
-            reply = get_insurance_summary(prompt)
-        if reply:
-            st.success(reply)
-            speak(reply)
+        followup = get_insurance_summary(f"{prompt}\nFollow-up: {q}")
+        st.success(followup)
+        speak(followup)
 else:
     if st.button("🎤 Start Voice Chat"):
         with st.spinner("Listening..."):
-            user_voice_input = listen()
-            st.info(f"🗣️ You said: {user_voice_input}")
-            prompt = build_prompt(user_data, selected_type, user_voice_input)
-            reply = get_insurance_summary(prompt)
-        if reply:
-            st.success(reply)
-            speak(reply)
+            q = listen()
+            st.info(f"🗣️ You said: {q}")
+            followup = get_insurance_summary(f"{prompt}\nFollow-up: {q}")
+            st.success(followup)
+            speak(followup)

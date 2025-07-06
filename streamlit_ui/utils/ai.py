@@ -3,7 +3,7 @@ import requests
 
 
 
-api_key="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"
+api_key=""
 
 def get_insurance_summary(prompt: str):
     if not api_key:

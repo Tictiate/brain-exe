@@ -1,8 +1,8 @@
 import razorpay
 import json
 
-RAZORPAY_KEY = "rzp_test_2CCzX1D1zas25Q"
-RAZORPAY_SECRET = "KRPd7wQMCrICP9c7xYeegL2g"
+RAZORPAY_KEY = ""
+RAZORPAY_SECRET = ""
 
 # Initialize Razorpay client
 client = razorpay.Client(auth=(RAZORPAY_KEY, RAZORPAY_SECRET))

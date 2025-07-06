@@ -5,7 +5,12 @@ from random import randint
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-cred = credentials.Certificate("serviceAccountKey.json")
+import json
+
+service_account_info = json.loads("""
+""")
+cred = credentials.Certificate(service_account_info)
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
