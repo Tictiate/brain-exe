@@ -18,7 +18,7 @@ def render_sidebar():
     st.sidebar.page_link("pages/8_survey_form.py", label="📝 Take Survey")
     st.sidebar.page_link("pages/4_explore_insurance_types.py", label="🔍 Explore Insurance Types")
     # st.sidebar.page_link("pages/4b_insurance_summary.py", label="🧠 AI Insurance Summary")
-    st.sidebar.page_link("pages/5_plan_browser.py", label="📄 Browse Plans")
+    # st.sidebar.page_link("pages/5_plan_browser.py", label="📄 Browse Plans")
     st.sidebar.page_link("pages/9_chatbot_assistant.py", label="🤖 Chat with AI")
     st.sidebar.page_link("pages/7_payment_gateway.py", label="💳 UPI Payment")
     st.sidebar.page_link("pages/6_submit_claim.py", label="📤 Submit Claim")

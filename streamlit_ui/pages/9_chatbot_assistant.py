@@ -1,11 +1,10 @@
 import streamlit as st
 from utils.sidebar import render_sidebar
 from utils.ai import get_insurance_summary
-from utils.tts_stt import speak, listen
 from utils.firebase import store_survey_response, get_latest_survey_by_user
 import firebase_admin
 from firebase_admin import credentials, firestore
-
+from utils.voice_input import record_audio, transcribe_audio
 
 render_sidebar()
 st.title("🤖 Insurance Chatbot Advisor")
@@ -16,15 +15,10 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# ✅ Get user data
+
 user_id = st.session_state.get("user_id")
 if not user_id:
     st.warning("User not found. Please fill the survey first.")
-    st.stop()
-
-user_data = get_latest_survey_by_user(user_id)
-if not user_data:
-    st.error("Survey data not found.")
     st.stop()
 
 
@@ -48,7 +42,7 @@ Suggest the best insurance schemes for the following profile:
 👪 Dependents: {user_data['dependents']}
 💼 Occupation: {user_data['occupation']} ({user_data['sector']})
 💵 Income: ₹{user_data['income']} (Proof: {user_data['has_income_proof']})
-🩺 Health: {user_data['health_issues'] or 'None'}
+🩺 Health: {user_data['health_conditions'] or 'None'}
 ✅ Existing: {user_data['has_existing_insurance']} - {', '.join(user_data['insurance_type']) if user_data['insurance_type'] else 'None'}
 🎯 Preferences: Coverage = {', '.join(user_data['preferred_coverage'])}, Premium ≤ ₹{user_data['preferred_premium']}
 🏁 Payout: {user_data['payout_expectation']}, Priority: {user_data['priority']}
@@ -70,12 +64,16 @@ if mode == "💬 Text":
     if st.button("Ask AI"):
         followup = get_insurance_summary(f"{prompt}\nFollow-up: {q}")
         st.success(followup)
-        speak(followup)
+        # speak(followup)
 else:
     if st.button("🎤 Start Voice Chat"):
         with st.spinner("Listening..."):
-            q = listen()
-            st.info(f"🗣️ You said: {q}")
-            followup = get_insurance_summary(f"{prompt}\nFollow-up: {q}")
-            st.success(followup)
-            speak(followup)
+            try:
+                file_path = record_audio(duration=5)
+                q = transcribe_audio(file_path)
+                st.info(f"🗣️ You said: {q}")
+                followup = get_insurance_summary(f"{prompt}\nFollow-up: {q}")
+                st.success(followup)
+                # speak(followup)
+            except Exception as e:
+                st.error(f"Voice input failed: {e}")

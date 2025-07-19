@@ -1,12 +1,13 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
-import json
+from dotenv import load_dotenv
+import os
 
-# 🔐 Service account JSON (escaped properly with \\n)
-service_account_info = json.loads("""
+load_dotenv()
 
-""")
+
+service_account_info = os.getenv("FIREBASE_KEY_PATH")
 
 # ✅ Initialize Firebase app
 if not firebase_admin._apps:

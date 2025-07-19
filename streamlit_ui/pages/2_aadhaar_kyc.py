@@ -21,7 +21,7 @@ if st.button("Send OTP"):
                     st.success("✅ OTP sent successfully!")
                     st.session_state.aadhaar_number = aadhaar_input
                     st.session_state.otp_received = result.get("otp")
-                    st.write("Now go to the next page: 3️⃣ OTP Verification")
+                    st.switch_page("pages/3_otp_verify.py")
                 else:
                     st.error(result.get("message", "Unknown error"))
             except Exception as e:

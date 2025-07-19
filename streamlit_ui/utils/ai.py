@@ -1,9 +1,9 @@
 import os
 import requests
+from dotenv import load_dotenv
 
-
-
-api_key=""
+load_dotenv()
+api_key = os.getenv("OPEN_ROUTER_KEY")
 
 def get_insurance_summary(prompt: str):
     if not api_key:

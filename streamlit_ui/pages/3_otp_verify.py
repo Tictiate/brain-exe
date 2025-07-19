@@ -28,7 +28,7 @@ else:
                     if response.status_code == 200:
                         st.success("✅ OTP Verified Successfully!")
                         st.session_state.otp_verified = True
-                        st.write("You can now proceed to Plan Selection ➡️")
+                        st.switch_page("pages/1_language_select.py")
                     else:
                         st.error(f"❌ {result.get('message', 'Verification failed')}")
                 except Exception as e:
